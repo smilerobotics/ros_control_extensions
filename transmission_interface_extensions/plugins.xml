@@ -18,4 +18,13 @@
     </description>
   </class>
 
+  <!-- Transmission types -->
+  <class name="slider_crank_transmission/SliderCrankTransmission"
+         type="slider_crank_transmission::SliderCrankTransmissionLoader"
+         base_class_type="transmission_interface::TransmissionLoader">
+    <description>
+      Load from a URDF description the configuration of a slider-crank transmission.
+    </description>
+  </class>
+  
 </library>
