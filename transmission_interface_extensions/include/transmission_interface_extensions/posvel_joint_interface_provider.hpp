@@ -11,8 +11,8 @@
 // for RequisiteProvider, JointInterfaces,RawJointDataMap,JointData
 #include <transmission_interface/transmission_interface_loader.h>
 #include <transmission_interface/velocity_joint_interface_provider.h>
-#include <transmission_interface_extensions/backend_adapter.hpp>
 #include <transmission_interface_extensions/common_namespaces.hpp>
+#include <transmission_interface_extensions/public_adapter.hpp>
 
 namespace transmission_interface_extensions {
 
@@ -103,9 +103,9 @@ private:
     return interface;
   }
 
-  Backend< ti::JointStateInterfaceProvider > state_provider_;
-  Backend< ti::PositionJointInterfaceProvider > pos_cmd_provider_;
-  Backend< ti::VelocityJointInterfaceProvider > vel_cmd_provider_;
+  PublicAdapter< ti::JointStateInterfaceProvider > state_provider_;
+  PublicAdapter< ti::PositionJointInterfaceProvider > pos_cmd_provider_;
+  PublicAdapter< ti::VelocityJointInterfaceProvider > vel_cmd_provider_;
 };
 } // namespace transmission_interface_extensions
 

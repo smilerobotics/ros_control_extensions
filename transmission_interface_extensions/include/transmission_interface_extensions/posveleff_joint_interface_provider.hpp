@@ -10,9 +10,9 @@
 #include <transmission_interface/transmission_info.h>
 // for RequisiteProvider, JointInterfaces,RawJointDataMap,JointData
 #include <transmission_interface/transmission_interface_loader.h>
-#include <transmission_interface_extensions/backend_adapter.hpp>
 #include <transmission_interface_extensions/common_namespaces.hpp>
 #include <transmission_interface_extensions/posvel_joint_interface_provider.hpp>
+#include <transmission_interface_extensions/public_adapter.hpp>
 
 namespace transmission_interface_extensions {
 
@@ -103,9 +103,9 @@ private:
     return interface;
   }
 
-  Backend< ti::JointStateInterfaceProvider > state_provider_;
-  Backend< PosVelJointInterfaceProvider > posvel_cmd_provider_;
-  Backend< ti::EffortJointInterfaceProvider > eff_cmd_provider_;
+  PublicAdapter< ti::JointStateInterfaceProvider > state_provider_;
+  PublicAdapter< PosVelJointInterfaceProvider > posvel_cmd_provider_;
+  PublicAdapter< ti::EffortJointInterfaceProvider > eff_cmd_provider_;
 };
 } // namespace transmission_interface_extensions
 

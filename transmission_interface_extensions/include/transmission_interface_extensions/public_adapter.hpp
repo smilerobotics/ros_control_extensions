@@ -1,5 +1,5 @@
-#ifndef TRANSMISSION_INTERFACE_EXTENSIONS_BACKEND_ADAPTER_HPP
-#define TRANSMISSION_INTERFACE_EXTENSIONS_BACKEND_ADAPTER_HPP
+#ifndef TRANSMISSION_INTERFACE_EXTENSIONS_PUBLIC_ADAPTER_HPP
+#define TRANSMISSION_INTERFACE_EXTENSIONS_PUBLIC_ADAPTER_HPP
 
 #include <hardware_interface/robot_hw.h>
 #include <transmission_interface/transmission_info.h>
@@ -11,10 +11,11 @@
 namespace transmission_interface_extensions {
 
 // we need to invoke protected methods of backend providers
+// in PosVel or PosVelEffJointInterfaceProvider
 // but cannot inherit all providers at once because of the diamond inheritance problem.
 // this class allows to access these protected methods without inheritance
-// by "pulling up" method permissions.
-template < class Provider > class Backend : public Provider {
+// by "pulling up" method permissions to public.
+template < class Provider > class PublicAdapter : public Provider {
 public:
   bool getJointStateData(const ti::TransmissionInfo &transmission_info,
                          const ti::RawJointDataMap &raw_joint_data_map,
