@@ -1,0 +1,21 @@
+<library path="lib/libtransmission_interface_extensions">
+
+  <class name="hardware_interface/PosVelJointInterface" 
+         type="transmission_interface_extensions::PosVelJointInterfaceProvider" 
+         base_class_type="transmission_interface::RequisiteProvider">
+    <description>
+      Deal with hardware interface specifics when loading a transmission interface from URDF.
+      PosVelJointInterface specialization.
+    </description>
+  </class>
+
+  <class name="hardware_interface/PosVelEffJointInterface" 
+         type="transmission_interface_extensions::PosVelEffJointInterfaceProvider" 
+         base_class_type="transmission_interface::RequisiteProvider">
+    <description>
+      Deal with hardware interface specifics when loading a transmission interface from URDF.
+      PosVelEffJointInterface specialization.
+    </description>
+  </class>
+
+</library>
