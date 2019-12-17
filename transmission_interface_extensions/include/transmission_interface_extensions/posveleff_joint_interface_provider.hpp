@@ -14,6 +14,8 @@
 #include <transmission_interface_extensions/posvel_joint_interface_provider.hpp>
 #include <transmission_interface_extensions/public_adapter.hpp>
 
+#include <boost/foreach.hpp>
+
 namespace transmission_interface_extensions {
 
 class PosVelEffJointInterfaceProvider : public ti::RequisiteProvider {
@@ -39,7 +41,7 @@ public:
     hie::PosVelEffJointInterface *const interface(robot_hw->get< hie::PosVelEffJointInterface >());
 
     // Register joints on the hardware interface
-    for (const ti::JointInfo &joint_info : transmission_info.joints_) {
+    BOOST_FOREACH (const ti::JointInfo &joint_info, transmission_info.joints_) {
       // Do nothing if joint already exists on the hardware interface
       if (hasResource(joint_info.name_, *interface)) {
         continue;
