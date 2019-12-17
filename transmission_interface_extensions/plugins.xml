@@ -9,7 +9,7 @@
     </description>
   </class>
 
-  <class name="hardware_interface/PosVelEffJointInterface" 
+  <class name="hardware_interface_extensions/PosVelEffJointInterface" 
          type="transmission_interface_extensions::PosVelEffJointInterfaceProvider" 
          base_class_type="transmission_interface::RequisiteProvider">
     <description>
@@ -19,8 +19,8 @@
   </class>
 
   <!-- Transmission types -->
-  <class name="slider_crank_transmission/SliderCrankTransmission"
-         type="slider_crank_transmission::SliderCrankTransmissionLoader"
+  <class name="transmission_interface_extensions/SliderCrankTransmission"
+         type="transmission_interface_extensions::SliderCrankTransmissionLoader"
          base_class_type="transmission_interface::TransmissionLoader">
     <description>
       Load from a URDF description the configuration of a slider-crank transmission.
