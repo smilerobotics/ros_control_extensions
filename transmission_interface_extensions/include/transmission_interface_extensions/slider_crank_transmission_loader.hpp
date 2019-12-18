@@ -63,8 +63,8 @@ private:
     }
 
     // parse params from the <actuator> element
-    dst_info->actuator_reduction =
-        parseOptionalValue(src_info.actuators_[0].xml_element_, "mechanicalReduction", 1.);
+    const TiXmlElement actuator_el(loadXmlElement(src_info.actuators_[0].xml_element_));
+    dst_info->actuator_reduction = parseOptionalValue(actuator_el, "mechanicalReduction", 1.);
   }
 
   // <joint> element in xml
@@ -90,22 +90,23 @@ private:
 
     // parse params from the <joint> element with "crank" role
     dst_info->crank_joint_id = findJointByRole(src_info.joints_, "crank");
-    dst_info->crank_offset =
-        parseOptionalValue(src_info.joints_[dst_info->crank_joint_id].xml_element_, "offset", 0.);
-    dst_info->crank_length =
-        parseRequiredValue(src_info.joints_[dst_info->crank_joint_id].xml_element_, "length");
+    const TiXmlElement crank_joint_el(
+        loadXmlElement(src_info.joints_[dst_info->crank_joint_id].xml_element_));
+    dst_info->crank_offset = parseOptionalValue(crank_joint_el, "offset", 0.);
+    dst_info->crank_length = parseRequiredValue(crank_joint_el, "length");
 
     // parse params from the <joint> element with "bar" role
     dst_info->bar_joint_id = findJointByRole(src_info.joints_, "bar");
-    dst_info->bar_length =
-        parseRequiredValue(src_info.joints_[dst_info->bar_joint_id].xml_element_, "length");
+    const TiXmlElement bar_joint_el(
+        loadXmlElement(src_info.joints_[dst_info->bar_joint_id].xml_element_));
+    dst_info->bar_length = parseRequiredValue(bar_joint_el, "length");
 
     // parse params from the <joint> element with "slider" role
     dst_info->slider_joint_id = findJointByRole(src_info.joints_, "slider");
-    dst_info->slider_offset_x =
-        parseOptionalValue(src_info.joints_[dst_info->slider_joint_id].xml_element_, "offsetX", 0.);
-    dst_info->slider_offset_y =
-        parseOptionalValue(src_info.joints_[dst_info->slider_joint_id].xml_element_, "offsetY", 0.);
+    const TiXmlElement slider_joint_el(
+        loadXmlElement(src_info.joints_[dst_info->slider_joint_id].xml_element_));
+    dst_info->slider_offset_x = parseOptionalValue(slider_joint_el, "offsetX", 0.);
+    dst_info->slider_offset_y = parseOptionalValue(slider_joint_el, "offsetY", 0.);
   }
 };
 
