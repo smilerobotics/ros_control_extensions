@@ -2,99 +2,133 @@
 #define TRANSMISSION_INTERFACE_EXTENSIONS_POSVELEFF_JOINT_INTERFACE_PROVIDER_HPP
 
 #include <string>
+#include <vector>
 
 #include <hardware_interface/robot_hw.h>
 #include <hardware_interface_extensions/posveleff_command_interface.hpp>
-#include <transmission_interface/effort_joint_interface_provider.h>
-#include <transmission_interface/joint_state_interface_provider.h>
 #include <transmission_interface/transmission_info.h>
-// for RequisiteProvider, JointInterfaces,RawJointDataMap,JointData
+// for RequisiteProvider, JointInterfaces, RawJointDataMap, JointData
 #include <transmission_interface/transmission_interface_loader.h>
 #include <transmission_interface_extensions/common_namespaces.hpp>
 #include <transmission_interface_extensions/posvel_joint_interface_provider.hpp>
-#include <transmission_interface_extensions/public_adapter.hpp>
 
 #include <boost/foreach.hpp>
 
 namespace transmission_interface_extensions {
 
-class PosVelEffJointInterfaceProvider : public ti::RequisiteProvider {
+class PosVelEffJointInterfaceProvider : public PosVelJointInterfaceProvider {
 public:
   PosVelEffJointInterfaceProvider() {}
 
   virtual ~PosVelEffJointInterfaceProvider() {}
 
-  virtual bool updateJointInterfaces(const ti::TransmissionInfo &transmission_info,
-                                     hi::RobotHW *robot_hw, ti::JointInterfaces &joint_interfaces,
-                                     ti::RawJointDataMap &raw_joint_data_map) {
-    // first, setup state interfaces as a state provider
-    if (!state_provider_.updateJointInterfaces(transmission_info, robot_hw, joint_interfaces,
-                                               raw_joint_data_map)) {
+  virtual bool updateJointInterfaces(const ti::TransmissionInfo &trans_info, hi::RobotHW *robot_hw,
+                                     ti::JointInterfaces &jnt_ifaces,
+                                     ti::RawJointDataMap &raw_jnt_data_map) {
+    // register state interface & handles if never
+    if (!JointStateInterfaceProvider::updateJointInterfaces(trans_info, robot_hw, jnt_ifaces,
+                                                            raw_jnt_data_map)) {
       return false;
     }
 
-    // If interface does not yet exist in robot hardware abstraction, add it and use internal data
-    // structures
+    // register posveleff interface if never
     if (!robot_hw->get< hie::PosVelEffJointInterface >()) {
       robot_hw->registerInterface(&getPosVelEffJointInterface());
     }
-    hie::PosVelEffJointInterface *const interface(robot_hw->get< hie::PosVelEffJointInterface >());
+    hie::PosVelEffJointInterface &iface(*robot_hw->get< hie::PosVelEffJointInterface >());
 
-    // Register joints on the hardware interface
-    BOOST_FOREACH (const ti::JointInfo &joint_info, transmission_info.joints_) {
-      // Do nothing if joint already exists on the hardware interface
-      if (hasResource(joint_info.name_, *interface)) {
-        continue;
+    // register posveleff handle to the posvel interface if never
+    BOOST_FOREACH (const ti::JointInfo &jnt_info, trans_info.joints_) {
+      if (!hasResource(jnt_info.name_, iface)) {
+        ti::RawJointData &raw_jnt_data(raw_jnt_data_map[jnt_info.name_]);
+        iface.registerHandle(hie::PosVelEffJointHandle(
+            jnt_ifaces.joint_state_interface.getHandle(jnt_info.name_), &raw_jnt_data.position_cmd,
+            &raw_jnt_data.velocity_cmd, &raw_jnt_data.effort_cmd));
       }
-
-      // Update hardware interface
-      ti::RawJointData &raw_joint_data(raw_joint_data_map[joint_info.name_]);
-      const hie::PosVelEffJointHandle handle(
-          joint_interfaces.joint_state_interface.getHandle(joint_info.name_),
-          &raw_joint_data.position_cmd, &raw_joint_data.velocity_cmd, &raw_joint_data.effort_cmd);
-      interface->registerHandle(handle);
     }
 
     return true;
   }
 
 protected:
-  virtual bool getJointStateData(const ti::TransmissionInfo &transmission_info,
-                                 const ti::RawJointDataMap &raw_joint_data_map,
-                                 ti::JointData &jnt_state_data) {
-    // retrieve state data as a state provider
-    return state_provider_.getJointStateData(transmission_info, raw_joint_data_map, jnt_state_data);
-  }
-
-  virtual bool getJointCommandData(const ti::TransmissionInfo &transmission_info,
-                                   const ti::RawJointDataMap &raw_joint_data_map,
+  virtual bool getJointCommandData(const ti::TransmissionInfo &trans_info,
+                                   const ti::RawJointDataMap &raw_jnt_data_map,
                                    ti::JointData &jnt_cmd_data) {
-    // retrieve command data as command providers
-    return posvel_cmd_provider_.getJointCommandData(transmission_info, raw_joint_data_map,
-                                                    jnt_cmd_data) &&
-           eff_cmd_provider_.getJointCommandData(transmission_info, raw_joint_data_map,
-                                                 jnt_cmd_data);
+    // get position & velocity commands
+    if (!PosVelJointInterfaceProvider::getJointCommandData(trans_info, raw_jnt_data_map,
+                                                           jnt_cmd_data)) {
+      return false;
+    }
+
+    // allocate destination effort command data
+    const std::size_t dim(trans_info.joints_.size());
+    jnt_cmd_data.effort.resize(dim);
+
+    // map source to destination effort command data
+    for (std::size_t i = 0; i < dim; ++i) {
+      // find source data
+      const ti::RawJointDataMap::const_iterator raw_jnt_data(
+          raw_jnt_data_map.find(trans_info.joints_[i].name_));
+      if (raw_jnt_data == raw_jnt_data_map.end()) {
+        return false;
+      }
+
+      // map data
+      jnt_cmd_data.effort[i] = const_cast< double * >(&raw_jnt_data->second.effort_cmd);
+    }
   }
 
-  virtual bool getActuatorStateData(const ti::TransmissionInfo &transmission_info,
-                                    hi::RobotHW *robot_hw, ti::ActuatorData &act_state_data) {
-    // retrieve state data as a state provider
-    return state_provider_.getActuatorStateData(transmission_info, robot_hw, act_state_data);
-  }
+  virtual bool getActuatorCommandData(const ti::TransmissionInfo &trans_info, hi::RobotHW *robot_hw,
+                                      ti::ActuatorData &act_cmd_data) {
+    // get position & velocity commands
+    if (!PosVelJointInterfaceProvider::getActuatorCommandData(trans_info, robot_hw, act_cmd_data)) {
+      return false;
+    }
 
-  virtual bool getActuatorCommandData(const ti::TransmissionInfo &transmission_info,
-                                      hi::RobotHW *robot_hw, ti::ActuatorData &act_cmd_data) {
-    // retrieve command data as command providers
-    return posvel_cmd_provider_.getActuatorCommandData(transmission_info, robot_hw, act_cmd_data) &&
-           eff_cmd_provider_.getActuatorCommandData(transmission_info, robot_hw, act_cmd_data);
+    // find source effort command data
+    std::vector< hi::ActuatorHandle > act_eff_handles;
+    if (!getActuatorHandles< hi::EffortActuatorInterface >(trans_info.actuators_, robot_hw,
+                                                           act_eff_handles)) {
+      return false;
+    }
+
+    // allocate destination actuator command data
+    const std::size_t dim(trans_info.actuators_.size());
+    act_cmd_data.effort.resize(dim);
+
+    // map source to destination actuator command data
+    for (std::size_t i = 0; i < dim; ++i) {
+      act_cmd_data.effort[i] = const_cast< double * >(act_eff_handles[i].getCommandPtr());
+    }
+
+    return true;
   }
 
   virtual bool registerTransmission(ti::TransmissionLoaderData &loader_data,
-                                    TransmissionHandleData &handle_data) {
-    // register state, position command and velocity command transmissions (if not yet)
-    return state_provider_.registerTransmission(loader_data, handle_data) &&
-           posvel_cmd_provider_.registerTransmission(loader_data, handle_data) &&
-           eff_cmd_provider_.registerTransmission(loader_data, handle_data);
+                                    ti::RequisiteProvider::TransmissionHandleData &handle_data) {
+    // register state, position & velocity transmissions
+    if (!PosVelJointInterfaceProvider::registerTransmission(loader_data, handle_data)) {
+      return false;
+    }
+
+    // quick access to the transmission manager
+    ti::RobotTransmissions &trans_man(*loader_data.robot_transmissions);
+
+    // register effort command transmission interface if never
+    if (!trans_man.get< ti::JointToActuatorEffortInterface >()) {
+      trans_man.registerInterface(&loader_data.transmission_interfaces.jnt_to_act_eff_cmd);
+    }
+    ti::JointToActuatorEffortInterface &iface(
+        *trans_man.get< ti::JointToActuatorEffortInterface >());
+
+    // register effort command transmission handle if never
+    if (!hasResource(handle_data.name, iface)) {
+      iface.registerHandle(
+          ti::JointToActuatorEffortHandle(handle_data.name, handle_data.transmission.get(),
+                                          handle_data.act_cmd_data, handle_data.jnt_cmd_data));
+    }
+
+    return true;
   }
 
 private:
@@ -104,10 +138,6 @@ private:
     static hie::PosVelEffJointInterface interface;
     return interface;
   }
-
-  PublicAdapter< ti::JointStateInterfaceProvider > state_provider_;
-  PublicAdapter< PosVelJointInterfaceProvider > posvel_cmd_provider_;
-  PublicAdapter< ti::EffortJointInterfaceProvider > eff_cmd_provider_;
 };
 } // namespace transmission_interface_extensions
 

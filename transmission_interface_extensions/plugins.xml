@@ -27,33 +27,5 @@
       PosVelEffJointInterface specialization.
     </description>
   </class>
-
-  <!--  -->
-  <class name="hardware_interface/PositionJointInterface" 
-         type="transmission_interface::PositionJointInterfaceProvider" 
-         base_class_type="transmission_interface::RequisiteProvider">
-    <description>
-      Deal with hardware interface specifics when loading a transmission interface from URDF.
-      PosVelEffJointInterface specialization.
-    </description>
-  </class>
-
-  <class name="hardware_interface/VelocityJointInterface" 
-         type="transmission_interface::VelocityJointInterfaceProvider" 
-         base_class_type="transmission_interface::RequisiteProvider">
-    <description>
-      Deal with hardware interface specifics when loading a transmission interface from URDF.
-      PosVelEffJointInterface specialization.
-    </description>
-  </class>
-
-  <class name="hardware_interface/EffortJointInterface" 
-         type="transmission_interface::EffortJointInterfaceProvider" 
-         base_class_type="transmission_interface::RequisiteProvider">
-    <description>
-      Deal with hardware interface specifics when loading a transmission interface from URDF.
-      PosVelEffJointInterface specialization.
-    </description>
-  </class>
   
 </library>
