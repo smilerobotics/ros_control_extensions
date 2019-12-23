@@ -34,7 +34,7 @@
         <joint name="crank_joint">
             <!-- 'crank' role indicates this joint is the actuated crank joint -->
             <role>crank</role>
-            <!-- th_offset: angular offset between the actuator & joint (double, default: 0 [rad]) -->
+            <!-- th_offset: angular offset between the crank actuator & joint (double, default: 0 [rad]) -->
             <offset>0</offset>
             <!-- L_crank: length between the crank & bar joints (double, required) -->
             <length>0.1</length>
@@ -54,7 +54,7 @@
         <joint name="slider_joint">
             <!-- 'slider' role indicates this joint is the passive slider joint -->
             <role>slider</role>
-            <!-- D_x, D_y: distance offset between the crank & slider joints (double, default: 0) -->
+            <!-- D_x, D_y: distance offset between the crank & slider joint origins (double, default: 0) -->
             <offsetX>0</offsetX>
             <offsetY>0</offsetY>
             <!-- Joint interfaces of the slider joint. Commands to these interfaces will work. -->
@@ -62,7 +62,7 @@
         </joint>
         <!-- Exactly 1 actuator is required -->
         <actuator name="crank_actuator">
-            <!-- R: reduction from the actuator to the crank joint (double, default: 1) -->
+            <!-- R: reduction from the crank actuator to joint (double, default: 1) -->
             <mechanicalReduction>1</mechanicalReduction>
         </actuator>
     </transmission>
