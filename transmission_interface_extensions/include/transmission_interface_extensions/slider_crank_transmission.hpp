@@ -155,8 +155,8 @@ private:
     const double crank_th(
         normalizeAngle(std::atan2(info_.slider_offset_y, slider_x) +
                        std::acos((slider_r * slider_r + info_.crank_length * info_.crank_length -
-                                  info_.bar_length * info_.bar_length)) /
-                           (2. * slider_r * info_.crank_length)));
+                                  info_.bar_length * info_.bar_length) /
+                                 (2. * slider_r * info_.crank_length))));
 
     // simple transmission from crank joint to actuator
     *act_pos = (crank_th - info_.crank_offset) * info_.actuator_reduction;
@@ -193,6 +193,6 @@ private:
   double present_actuator_pos_, present_slider_pos_;
 };
 
-} // namespace slider_crank_transmission
+} // namespace transmission_interface_extensions
 
 #endif
