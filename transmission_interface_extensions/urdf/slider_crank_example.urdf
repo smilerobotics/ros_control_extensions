@@ -30,21 +30,39 @@
 
     <transmission name="slider_crank_trans">
         <type>transmission_interface_extensions/SliderCrankTransmission</type>
+        <!-- Exactly 3 joints with different roles are required -->
         <joint name="crank_joint">
+            <!-- 'crank' role indicates this joint is the actuated crank joint -->
             <role>crank</role>
+            <!-- th_offset: angular offset between the actuator & joint (double, default: 0 [rad]) -->
+            <offset>0</offset>
+            <!-- L_crank: length between the crank & bar joints (double, required) -->
             <length>0.1</length>
+            <!-- Joint interfaces of the crank joint. Should match these of the slider joint. -->
+            <!-- Commands to these interfaces will NOT work.                                  -->
             <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
         </joint>
         <joint name="bar_joint">
+            <!-- 'bar' role indicates this joint is the passive bar joint -->
             <role>bar</role>
+            <!-- L_bar: length between the bar & slider joints (double, required) -->
             <length>0.2</length>
+            <!-- Joint interfaces of the bar joint. Should match these of the slider joint. -->
+            <!-- Commands to these interfaces will NOT work.                                -->
             <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
         </joint>
         <joint name="slider_joint">
+            <!-- 'slider' role indicates this joint is the passive slider joint -->
             <role>slider</role>
+            <!-- D_x, D_y: distance offset between the crank & slider joints (double, default: 0) -->
+            <offsetX>0</offsetX>
+            <offsetY>0</offsetY>
+            <!-- Joint interfaces of the slider joint. Commands to these interfaces will work. -->
             <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
         </joint>
+        <!-- Exactly 1 actuator is required -->
         <actuator name="crank_actuator">
+            <!-- R: reduction from the actuator to the crank joint (double, default: 1) -->
             <mechanicalReduction>1</mechanicalReduction>
         </actuator>
     </transmission>
