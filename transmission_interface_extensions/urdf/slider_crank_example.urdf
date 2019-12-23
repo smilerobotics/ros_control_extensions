@@ -1,0 +1,52 @@
+<robot name="slider_crank_example">
+
+    <link name="base" />
+
+    <joint name="crank_joint" type="continuous">
+        <parent link="base" />
+        <child link="crank" />
+        <axis xyz="0 -1 0" />
+    </joint>
+
+    <link name="crank" />
+
+    <joint name="bar_joint" type="continuous">
+        <origin xyz="0.1 0 0" />
+        <parent link="crank" />
+        <child link="bar" />
+        <axis xyz="0 -1 0" />
+    </joint>
+
+    <link name="bar" />
+
+    <joint name="slider_joint" type="prismatic">
+        <parent link="base" />
+        <child link="slider" />
+        <limit effort="1.0" velocity="0.05" lower="0.1" upper="0.3" />
+        <axis xyz="1 0 0" />
+    </joint>
+
+    <link name="slider" />
+
+    <transmission name="slider_crank_trans">
+        <type>transmission_interface_extensions/SliderCrankTransmission</type>
+        <joint name="crank_joint">
+            <role>crank</role>
+            <length>0.1</length>
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+        </joint>
+        <joint name="bar_joint">
+            <role>bar</role>
+            <length>0.2</length>
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+        </joint>
+        <joint name="slider_joint">
+            <role>slider</role>
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="crank_actuator">
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+
+</robot>

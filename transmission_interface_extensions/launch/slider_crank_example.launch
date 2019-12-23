@@ -1,0 +1,40 @@
+<launch>
+
+    <!-- The robot description -->
+    <param name="robot_description" textfile="$(find transmission_interface_extensions)/urdf/slider_crank_example.urdf" />
+
+    <!-- Hardware driver -->
+    <node name="dummy_hardware_node" pkg="layered_hardware" type="layered_hardware_node" output="screen">
+        <rosparam>
+            control_frequency: 20
+            use_expected_period: true
+            # upper (controller-side) to bottom (actuator-side)
+            layers: [ joint_limits_layer, transmission_layer, dummy_actuator_layer ]
+            joint_limits_layer:
+                type: layered_hardware/JointLimitsLayer
+            transmission_layer:
+                type: layered_hardware/TransmissionLayer
+            dummy_actuator_layer:
+                type: layered_hardware/DummyPositionActuatorLayer
+                actuators: [ crank_actuator ]
+        </rosparam>
+    </node>
+
+    <!-- Controller parameters -->
+    <rosparam>
+        joint_state_controller:
+            type: joint_state_controller/JointStateController
+            publish_rate: 20
+        slider_controller:
+            type: position_controllers/JointPositionController
+            joint: slider_joint
+    </rosparam>
+
+    <!-- Controller starter -->
+    <node name="controller_starter" pkg="controller_manager" type="controller_manager" output="screen"
+          args="spawn joint_state_controller slider_controller" />
+
+    <!-- joint state msg to tf -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen" />
+
+</launch>
