@@ -16,6 +16,10 @@
 
 namespace joint_limits_interface_extensions {
 
+//
+// PosVel handles
+//
+
 class PosVelJointSaturationHandle {
 public:
   PosVelJointSaturationHandle(const hi::PosVelJointHandle &posvel_handle,
@@ -60,6 +64,55 @@ protected:
   jli::VelocityJointSaturationHandle vel_sat_handle_;
 };
 
+class PosVelJointSoftLimitsHandle {
+public:
+  PosVelJointSoftLimitsHandle(const hi::PosVelJointHandle &posvel_handle,
+                              const jli::JointLimits &limits,
+                              const jli::SoftJointLimits &soft_limits)
+      : posvel_handle_(posvel_handle),
+        pos_soft_handle_(makeJointHandle(posvel_handle.getName(), &pos_, &vel_, &eff_, &pos_cmd_),
+                         limits, soft_limits),
+        vel_soft_handle_(makeJointHandle(posvel_handle.getName(), &pos_, &vel_, &eff_, &vel_cmd_),
+                         limits, soft_limits) {}
+
+  std::string getName() const { return posvel_handle_.getName(); }
+
+  void enforceLimits(const ros::Duration &period) {
+    // read local data from joint data
+    pos_ = posvel_handle_.getPosition();
+    vel_ = posvel_handle_.getVelocity();
+    eff_ = posvel_handle_.getEffort();
+    pos_cmd_ = posvel_handle_.getCommandPosition();
+    vel_cmd_ = posvel_handle_.getCommandVelocity();
+
+    // saturate local commands
+    pos_soft_handle_.enforceLimits(period);
+    vel_soft_handle_.enforceLimits(period);
+
+    // update joint commands with local commands
+    posvel_handle_.setCommandPosition(pos_cmd_);
+    posvel_handle_.setCommandVelocity(vel_cmd_);
+  }
+
+  void reset() { pos_soft_handle_.reset(); }
+
+protected:
+  static hi::JointHandle makeJointHandle(const std::string &name, double *pos, double *vel,
+                                         double *eff, double *cmd) {
+    return hi::JointHandle(hi::JointStateHandle(name, pos, vel, eff), cmd);
+  }
+
+protected:
+  double pos_, vel_, eff_, pos_cmd_, vel_cmd_;
+  hi::PosVelJointHandle posvel_handle_;
+  jli::PositionJointSoftLimitsHandle pos_soft_handle_;
+  jli::VelocityJointSoftLimitsHandle vel_soft_handle_;
+};
+
+//
+// PosVelEff handles
+//
+
 class PosVelEffJointSaturationHandle : public PosVelJointSaturationHandle {
 public:
   PosVelEffJointSaturationHandle(const hie::PosVelEffJointHandle &posveleff_handle,
@@ -98,6 +151,51 @@ protected:
   jli::EffortJointSaturationHandle eff_sat_handle_;
 };
 
+class PosVelEffJointSoftLimitsHandle : public PosVelJointSoftLimitsHandle {
+public:
+  PosVelEffJointSoftLimitsHandle(const hie::PosVelEffJointHandle &posveleff_handle,
+                                 const jli::JointLimits &limits,
+                                 const jli::SoftJointLimits &soft_limits)
+      : PosVelJointSoftLimitsHandle(posveleff_handle, limits, soft_limits),
+        posveleff_handle_(posveleff_handle),
+        eff_soft_handle_(
+            makeJointHandle(posveleff_handle.getName(), &pos_, &vel_, &eff_, &eff_cmd_), limits,
+            soft_limits) {}
+
+  std::string getName() const { return posveleff_handle_.getName(); }
+
+  void enforceLimits(const ros::Duration &period) {
+    // read local data from joint data
+    pos_ = posveleff_handle_.getPosition();
+    vel_ = posveleff_handle_.getVelocity();
+    eff_ = posveleff_handle_.getEffort();
+    pos_cmd_ = posveleff_handle_.getCommandPosition();
+    vel_cmd_ = posveleff_handle_.getCommandVelocity();
+    eff_cmd_ = posveleff_handle_.getCommandEffort();
+
+    // saturate local commands
+    pos_soft_handle_.enforceLimits(period);
+    vel_soft_handle_.enforceLimits(period);
+    eff_soft_handle_.enforceLimits(period);
+
+    // update joint commands with local commands
+    posveleff_handle_.setCommandPosition(pos_cmd_);
+    posveleff_handle_.setCommandVelocity(vel_cmd_);
+    posveleff_handle_.setCommandEffort(eff_cmd_);
+  }
+
+  void reset() { pos_soft_handle_.reset(); }
+
+protected:
+  double eff_cmd_;
+  hie::PosVelEffJointHandle posveleff_handle_;
+  jli::EffortJointSoftLimitsHandle eff_soft_handle_;
+};
+
+//
+// interfaces
+//
+
 class PosVelJointSaturationInterface
     : public jli::JointLimitsInterface< PosVelJointSaturationHandle > {
 public:
@@ -106,8 +204,24 @@ public:
   }
 };
 
+class PosVelJointSoftLimitsInterface
+    : public jli::JointLimitsInterface< PosVelJointSoftLimitsHandle > {
+public:
+  void reset() {
+    BOOST_FOREACH (ResourceMap::value_type &handle, resource_map_) { handle.second.reset(); }
+  }
+};
+
 class PosVelEffJointSaturationInterface
     : public jli::JointLimitsInterface< PosVelEffJointSaturationHandle > {
+public:
+  void reset() {
+    BOOST_FOREACH (ResourceMap::value_type &handle, resource_map_) { handle.second.reset(); }
+  }
+};
+
+class PosVelEffJointSoftLimitsInterface
+    : public jli::JointLimitsInterface< PosVelEffJointSoftLimitsHandle > {
 public:
   void reset() {
     BOOST_FOREACH (ResourceMap::value_type &handle, resource_map_) { handle.second.reset(); }
