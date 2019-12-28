@@ -13,7 +13,10 @@ namespace hardware_interface_extensions {
 // sensor state handles
 //
 
-template < typename Data > class SensorStateHandle {
+template < typename DataT > class SensorStateHandle {
+public:
+  typedef DataT Data;
+
 public:
   SensorStateHandle() : name_(), data_(NULL) {}
 
@@ -37,7 +40,7 @@ public:
 
 private:
   std::string name_;
-  const Data * data_;
+  const Data *data_;
 };
 
 typedef SensorStateHandle< sensor_msgs::BatteryState > BatteryStateHandle;
@@ -46,8 +49,14 @@ typedef SensorStateHandle< sensor_msgs::BatteryState > BatteryStateHandle;
 // sensor state interfaces
 //
 
-class BatteryStateInterface
-    : public hardware_interface::HardwareResourceManager< BatteryStateHandle > {};
+template < typename HandleT >
+class SensorStateInterface : public hardware_interface::HardwareResourceManager< HandleT > {
+public:
+  typedef HandleT Handle;
+};
+
+typedef SensorStateInterface< BatteryStateHandle > BatteryStateInterface;
+
 } // namespace hardware_interface_extensions
 
 #endif
