@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   hardware_interface
   roscpp
   sensor_msgs
+  std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -105,7 +106,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES hardware_interface_extensions
-  CATKIN_DEPENDS hardware_interface roscpp sensor_msgs
+  CATKIN_DEPENDS hardware_interface roscpp sensor_msgs std_msgs
 #  DEPENDS system_lib
 )
 
