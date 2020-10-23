@@ -31,6 +31,11 @@ public:
   // Conversions to trivially-copyable (i.e., copyable with memcpy()) types and ROS msg
 
   template < typename T >
+  typename boost::enable_if< boost::has_trivial_copy< T >, bool >::type canConvertTo() const {
+    return size() == sizeof(T);
+  }
+
+  template < typename T >
   typename boost::enable_if< boost::has_trivial_copy< T >, T >::type to() const {
     assert(size() == sizeof(T));
     return *reinterpret_cast< const T * >(&front());
