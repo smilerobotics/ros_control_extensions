@@ -76,6 +76,8 @@ protected:
       // map data
       jnt_cmd_data.effort[i] = const_cast< double * >(&raw_jnt_data->second.effort_cmd);
     }
+
+    return true;
   }
 
   virtual bool getActuatorCommandData(const ti::TransmissionInfo &trans_info, hi::RobotHW *robot_hw,
